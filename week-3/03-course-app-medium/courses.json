@@ -1,0 +1,18 @@
+[
+  {
+    "title": "Java",
+    "description": "Java for all",
+    "price": 1999,
+    "imageLink": "https://media.istockphoto.com/id/1069737510/photo/eiffel-tower-in-paris.webp?s=612x612&w=0&k=20&c=Oh9vB2KhFSCpMAE16Vhs6lyLlYgJGSm9DgdwXNO6OcU=",
+    "published": true,
+    "courseId": 1688540469391
+  },
+  {
+    "title": "Python",
+    "description": "Python for all",
+    "price": 1999,
+    "imageLink": "https://media.istockphoto.com/id/1069737510/photo/eiffel-tower-in-paris.webp?s=612x612&w=0&k=20&c=Oh9vB2KhFSCpMAE16Vhs6lyLlYgJGSm9DgdwXNO6OcU=",
+    "published": false,
+    "courseId": 1688540710293
+  }
+]

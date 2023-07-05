@@ -1,0 +1,17 @@
+[
+  {
+    "username": "user 1",
+    "password": "password",
+    "purchasedCourses": [
+      {
+        "title": "Java",
+        "description": "Java for all",
+        "price": 1999,
+        "imageLink": "https://media.istockphoto.com/id/1069737510/photo/eiffel-tower-in-paris.webp?s=612x612&w=0&k=20&c=Oh9vB2KhFSCpMAE16Vhs6lyLlYgJGSm9DgdwXNO6OcU=",
+        "published": true,
+        "courseId": 1688540469391
+      }
+    ],
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXIgMSIsImlhdCI6MTY4ODU0MDU1MSwiZXhwIjoxNjg4NTQ0MTUxfQ.jpx27olNHp_x4hCimjg9EzN5KOUsBEsf9PZ4cFBwNoI"
+  }
+]
