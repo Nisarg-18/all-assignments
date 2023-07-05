@@ -1,7 +1,4 @@
 [
-  {
-    "username": "admin 1",
-    "password": "password",
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIDEiLCJpYXQiOjE2ODg1NDA0MzgsImV4cCI6MTY4ODU0NDAzOH0.mIxjTRvbOrkDsFfu6XdDHSts5ZLq_MCltL5mkz3zjf0"
-  }
+  { "username": "admin 2", "password": "password" },
+  { "username": "admin 3", "password": "password" }
 ]

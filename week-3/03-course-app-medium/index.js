@@ -5,6 +5,20 @@ const app = express();
 
 app.use(express.json());
 
+var ADMINS = [];
+var COURSES = [];
+var USERS = [];
+
+try {
+  ADMINS = JSON.parse(fs.readFileSync("admins.json", { encoding: "utf-8" }));
+  COURSES = JSON.parse(fs.readFileSync("courses.json", { encoding: "utf-8" }));
+  USERS = JSON.parse(fs.readFileSync("users.json", { encoding: "utf-8" }));
+} catch {
+  ADMINS = [];
+  COURSES = [];
+  USERS = [];
+}
+
 const adminSecret = "admin";
 const userSecret = "user";
 
@@ -56,30 +70,21 @@ app.post("/admin/signup", (req, res) => {
   // logic to sign up admin
   const { username, password } = req.body;
   if (username && password) {
-    fs.readFile("admins.json", { encoding: "utf-8" }, (err, data) => {
-      const admins = JSON.parse(data);
-      const exists = admins.find((a) => a.username === username);
-      if (exists) {
-        res.status(400).send("Admin already exists");
-      } else {
-        const token = generateTokenAdmin({ username: username });
-        const admin = {
-          username: username,
-          password: password,
-          token: token,
-        };
-        admins.push(admin);
-        fs.writeFile("admins.json", JSON.stringify(admins), (err) => {
-          if (!err) {
-            res
-              .status(200)
-              .json({ message: "Admin created successfully", token: token });
-          } else {
-            res.sendStatus(401);
-          }
-        });
-      }
-    });
+    const exists = ADMINS.find((a) => a.username === username);
+    if (exists) {
+      res.status(400).send("Admin already exists");
+    } else {
+      const token = generateTokenAdmin({ username: username });
+      const admin = {
+        username: username,
+        password: password,
+      };
+      ADMINS.push(admin);
+      fs.writeFileSync("admins.json", JSON.stringify(ADMINS));
+      res
+        .status(200)
+        .json({ message: "Admin created successfully", token: token });
+    }
   } else {
     res.status(400).send("all fields required");
   }
@@ -88,99 +93,63 @@ app.post("/admin/signup", (req, res) => {
 app.post("/admin/login", (req, res) => {
   // logic to log in admin
   const { username, password } = req.headers;
-  fs.readFile("admins.json", { encoding: "utf-8" }, (err, data) => {
-    const admins = JSON.parse(data);
-    const admin = admins.find(
-      (a) => a.username === username && a.password === password
-    );
-    if (admin) {
-      const token = generateTokenAdmin({ username: admin.username });
-      admin.token = token;
-      fs.writeFile("admins.json", JSON.stringify(admins), (err) => {
-        if (!err) {
-          res
-            .status(200)
-            .json({ message: "Logged in successfully", token: token });
-        } else {
-          res.sendStatus(401);
-        }
-      });
-    } else {
-      res.status(403).send("Admin not found");
-    }
-  });
+  const admin = ADMINS.find(
+    (a) => a.username === username && a.password === password
+  );
+  if (admin) {
+    const token = generateTokenAdmin({ username: admin.username });
+    fs.writeFileSync("admins.json", JSON.stringify(ADMINS));
+    res.status(200).json({ message: "Logged in successfully", token: token });
+  } else {
+    res.status(403).send("Admin not found");
+  }
 });
 
 app.post("/admin/courses", authenticateTokenAdmin, (req, res) => {
   // logic to create a course
   const username = req.username;
-  fs.readFile("admins.json", { encoding: "utf-8" }, (err, data) => {
-    const admins = JSON.parse(data);
-    const admin = admins.find((a) => a.username === username);
-    if (admin) {
-      const id = Date.now();
-      const course = { ...req.body, courseId: id };
-      fs.readFile("courses.json", { encoding: "utf-8" }, (err, data) => {
-        const courses = JSON.parse(data);
-        courses.push(course);
-        fs.writeFile("courses.json", JSON.stringify(courses), (err) => {
-          if (!err) {
-            res
-              .status(200)
-              .json({ message: "Course created successfully", courseId: id });
-          } else {
-            res.sendStatus(401);
-          }
-        });
-      });
-    } else {
-      res.status(403);
-    }
-  });
+
+  const admin = ADMINS.find((a) => a.username === username);
+  if (admin) {
+    const id = Date.now();
+    const course = { ...req.body, courseId: id };
+    COURSES.push(course);
+    fs.writeFileSync("courses.json", JSON.stringify(COURSES));
+    res
+      .status(200)
+      .json({ message: "Course created successfully", courseId: id });
+  } else {
+    res.status(403);
+  }
 });
 
 app.put("/admin/courses/:courseId", authenticateTokenAdmin, (req, res) => {
   // logic to edit a course
   const username = req.username;
   const courseId = req.params.courseId;
-  fs.readFile("admins.json", { encoding: "utf-8" }, (err, data) => {
-    const admins = JSON.parse(data);
-    const admin = admins.find((a) => a.username === username);
-    if (admin) {
-      fs.readFile("courses.json", { encoding: "utf-8" }, (err, data) => {
-        const courses = JSON.parse(data);
-        const course = courses.find((c) => c.courseId == courseId);
-        Object.assign(course, req.body);
-        fs.writeFile("courses.json", JSON.stringify(courses), (err) => {
-          if (!err) {
-            res.status(200).json({ message: "Course updated successfully" });
-          } else {
-            res.sendStatus(401);
-          }
-        });
-      });
-    } else {
-      res.sendStatus(403);
-    }
-  });
+
+  const admin = ADMINS.find((a) => a.username === username);
+  if (admin) {
+    const course = COURSES.find((c) => c.courseId == courseId);
+    Object.assign(course, req.body);
+    fs.writeFileSync("courses.json", JSON.stringify(COURSES));
+    res.status(200).json({ message: "Course updated successfully" });
+  } else {
+    res.sendStatus(403);
+  }
 });
 
 app.get("/admin/courses", authenticateTokenAdmin, (req, res) => {
   // logic to get all courses
   const username = req.username;
-  fs.readFile("admins.json", { encoding: "utf-8" }, (err, data) => {
-    const admins = JSON.parse(data);
-    const admin = admins.find((a) => a.username === username);
-    if (admin) {
-      fs.readFile("courses.json", { encoding: "utf-8" }, (err, data) => {
-        res.status(200).json({
-          courses: JSON.parse(data),
-        });
-      });
-    } else {
-      res.sendStatus(403);
-    }
-  });
+  const admin = ADMINS.find((a) => a.username === username);
+  if (admin) {
+    res.status(200).json({
+      courses: COURSES,
+    });
+  } else {
+    res.sendStatus(403);
+  }
 });
 
 // User routes
@@ -188,26 +157,18 @@ app.post("/users/signup", (req, res) => {
   // logic to sign up user
   const { username, password } = req.body;
   if (username && password) {
-    fs.readFile("users.json", { encoding: "utf-8" }, (err, data) => {
-      const users = JSON.parse(data);
-      const exists = users.find((u) => u.username === username);
-      if (!exists) {
-        const id = generateTokenUser({ username: username });
-        users.push({ ...req.body, purchasedCourses: [], token: id });
-        fs.writeFile("users.json", JSON.stringify(users), (err) => {
-          if (!err) {
-            res.status(200).json({
-              message: "User created successfully",
-              token: id,
-            });
-          } else {
-            res.sendStatus(401);
-          }
-        });
-      } else {
-        res.status(400).send("user already exists");
-      }
-    });
+    const exists = USERS.find((u) => u.username === username);
+    if (!exists) {
+      const id = generateTokenUser({ username: username });
+      USERS.push({ ...req.body, purchasedCourses: [] });
+      fs.writeFileSync("users.json", JSON.stringify(USERS));
+      res.status(200).json({
+        message: "User created successfully",
+        token: id,
+      });
+    } else {
+      res.status(400).send("user already exists");
+    }
   }
 });
 
@@ -215,89 +176,58 @@ app.post("/users/login", (req, res) => {
   // logic to log in user
   const { username, password } = req.headers;
   if (username && password) {
-    fs.readFile("users.json", { encoding: "utf-8" }, (err, data) => {
-      const users = JSON.parse(data);
-      const exists = users.find(
-        (u) => u.username === username && u.password === password
-      );
-      if (exists) {
-        const id = generateTokenUser({ username: username });
-        exists.token = id;
-        fs.writeFile("users.json", JSON.stringify(users), (err) => {
-          if (!err) {
-            res
-              .status(200)
-              .json({ message: "Logged in successfully", token: id });
-          } else {
-            res.sendStatus(401);
-          }
-        });
-      } else {
-        res.sendStatus(403);
-      }
-    });
+    const exists = USERS.find(
+      (u) => u.username === username && u.password === password
+    );
+    if (exists) {
+      const id = generateTokenUser({ username: username });
+      fs.writeFileSync("users.json", JSON.stringify(USERS));
+      res.status(200).json({ message: "Logged in successfully", token: id });
+    } else {
+      res.sendStatus(403);
+    }
   }
 });
 
 app.get("/users/courses", authenticateTokenUser, (req, res) => {
   // logic to list all courses
   const username = req.username;
-  fs.readFile("users.json", { encoding: "utf-8" }, (err, data) => {
-    const users = JSON.parse(data);
-    const user = users.find((u) => u.username === username);
-    if (user) {
-      fs.readFile("courses.json", { encoding: "utf-8" }, (err, data) => {
-        const courses = JSON.parse(data);
-        res.status(200).json({
-          courses: courses.filter((c) => c.published),
-        });
-      });
-    } else {
-      res.sendStatus(403);
-    }
-  });
+  const user = USERS.find((u) => u.username === username);
+  if (user) {
+    res.status(200).json({
+      courses: COURSES.filter((c) => c.published),
+    });
+  } else {
+    res.sendStatus(403);
+  }
 });
 
 app.post("/users/courses/:courseId", authenticateTokenUser, (req, res) => {
   // logic to purchase a course
   const username = req.username;
   const courseId = req.params.courseId;
-  fs.readFile("users.json", { encoding: "utf-8" }, (err, data) => {
-    const users = JSON.parse(data);
-    const user = users.find((u) => u.username === username);
-    if (user) {
-      fs.readFile("courses.json", { encoding: "utf-8" }, (err, data) => {
-        const courses = JSON.parse(data);
-        const course = courses.find((c) => c.courseId == courseId);
-        user.purchasedCourses.push(course);
-        fs.writeFile("users.json", JSON.stringify(users), (err) => {
-          if (!err) {
-            res.status(200).json({ message: "Course purchased successfully" });
-          } else {
-            res.sendStatus(401);
-          }
-        });
-      });
-    } else {
-      res.sendStatus(403);
-    }
-  });
+  const user = USERS.find((u) => u.username === username);
+  if (user) {
+    const course = COURSES.find((c) => c.courseId == courseId);
+    user.purchasedCourses.push(course);
+    fs.writeFileSync("users.json", JSON.stringify(USERS));
+    res.status(200).json({ message: "Course purchased successfully" });
+  } else {
+    res.sendStatus(403);
+  }
 });
 
 app.get("/users/purchasedCourses", authenticateTokenUser, (req, res) => {
   // logic to view purchased courses
   const username = req.username;
-  fs.readFile("users.json", { encoding: "utf-8" }, (err, data) => {
-    const users = JSON.parse(data);
-    const user = users.find((u) => u.username === username);
-    if (user) {
-      res.status(200).json({
-        purchasedCourses: user.purchasedCourses,
-      });
-    } else {
-      res.sendStatus(403);
-    }
-  });
+  const user = USERS.find((u) => u.username === username);
+  if (user) {
+    res.status(200).json({
+      purchasedCourses: user.purchasedCourses,
+    });
+  } else {
+    res.sendStatus(403);
+  }
 });
 
 app.listen(3000, () => {
