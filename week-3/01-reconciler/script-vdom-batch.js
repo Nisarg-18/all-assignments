@@ -1,30 +1,25 @@
-let vDOM = []; // Our initial vDOM is an empty array
+var vDom = [];
 
 function createDomElements() {
   var parentElement = document.getElementById("mainArea");
 
+  let added = 0;
+  let updated = 0;
+  let deleted = 0;
   var currentChildren = Array.from(parentElement.children);
 
-  let added = 0, deleted = 0, updated = 0;
-  // Now, we'll compare our new vDOM to our actual DOM
-  vDOM.forEach(function(item) {
-    // Check if a child with this ID already exists in the DOM
-    var existingChild = currentChildren.find(function(child) {
-      return child.dataset.id === String(item.id);
-    });
-
+  // Process each item in the data array
+  vDom.forEach(function (item) {
+    var existingChild = currentChildren.find((c) => c.dataset.id == item.id);
     if (existingChild) {
       updated++;
-      // If it exists, update it
-      existingChild.children[0].innerHTML = item.title;
-      existingChild.children[1].innerHTML = item.description;
-      // Remove it from the currentChildren array
-      currentChildren = currentChildren.filter(function(child) {
-        return child !== existingChild;
-      });
+      existingChild.children[0] = item.title;
+      existingChild.children[1] = item.description;
+
+      currentChildren = currentChildren.filter((c) => c !== existingChild);
     } else {
       added++;
-      // If it doesn't exist in the DOM, create it
+      // Create a new element
       var childElement = document.createElement("div");
       childElement.dataset.id = item.id; // Store the ID on the element for future lookups
 
@@ -45,10 +40,9 @@ function createDomElements() {
     }
   });
 
-  // Any children left in the currentChildren array no longer exist in the data, so remove them
-  currentChildren.forEach(function(child) {
+  currentChildren.forEach((c) => {
     deleted++;
-    parentElement.removeChild(child);
+    parentElement.removeChild(c);
   });
 
   console.log(added);
@@ -56,31 +50,29 @@ function createDomElements() {
   console.log(deleted);
 }
 
-
-function updateVirtualDom(data) {
-    vDOM = data.map(item => {
-        return {
-          id: item.id,
-          title: item.title,
-          description: item.description
-        };
-      });
+function updateVdom(data) {
+  console.log("in update vDom");
+  vDom = data.map((d) => {
+    return {
+      id: d.id,
+      title: d.title,
+      description: d.description,
+    };
+  });
 }
-window.setInterval(() => {
-    let todos = [];
-    for (let i = 0; i<Math.floor(Math.random() * 100); i++) {
-      todos.push({
-        title: "Go to gym",
-        description: "Go to gym from 5",
-        id: i+1
-      })
-    }
-  
-    updateVirtualDom(todos);
-  }, 5000);
 
 window.setInterval(() => {
-    createDomElements();
+  let todos = [];
+  for (let i = 0; i < Math.floor(Math.random() * 100); i++) {
+    todos.push({
+      title: "Go to gym",
+      description: "Go to gym form 5",
+      id: i + 1,
+    });
+  }
+  updateVdom(todos);
 }, 1000);
 
-
+window.setInterval(() => {
+  createDomElements(vDom);
+}, 5000);

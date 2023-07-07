@@ -1,26 +1,23 @@
-let vDOM = []; // Our initial vDOM is an empty array
-
-function createDomElements(existingDOM, currentDOM) {
+var vDom = [];
+function createDomElements(existingDom, vDom) {
   var parentElement = document.getElementById("mainArea");
 
-  let added = 0, deleted = 0, updated = 0;
+  let added = 0;
+  let updated = 0;
+  let deleted = 0;
 
-  // Now, we'll compare our new vDOM to our old vDOM
-  currentDOM.forEach(function(item) {
-    // Check if an element with this ID already exists in the old vDOM
-    var existingItem = existingDOM.find(function(oldItem) {
-      return oldItem.id === item.id;
-    });
-
-    if (existingItem) {
+  // Process each item in the data array
+  vDom.forEach(function (item) {
+    var existingChild = existingDom.find((c) => c.id == item.id);
+    if (existingChild) {
       updated++;
-      // If it exists, update it
-      var existingChild = document.querySelector(`[data-id='${item.id}']`);
-      existingChild.children[0].innerHTML = item.title;
-      existingChild.children[1].innerHTML = item.description;
+      existingChild.title = item.title;
+      existingChild.description = item.description;
+
+      existingDom = existingDom.filter((c) => c !== existingChild);
     } else {
       added++;
-      // If it doesn't exist in the DOM, create it
+      // Create a new element
       var childElement = document.createElement("div");
       childElement.dataset.id = item.id; // Store the ID on the element for future lookups
 
@@ -41,13 +38,10 @@ function createDomElements(existingDOM, currentDOM) {
     }
   });
 
-  // Any item left in the existingDOM array no longer exist in the data, so remove them
-  existingDOM.forEach(function(oldItem) {
-    if (!currentDOM.some(item => item.id === oldItem.id)) {
-      deleted++;
-      var childToRemove = document.querySelector(`[data-id='${oldItem.id}']`);
-      parentElement.removeChild(childToRemove);
-    }
+  existingDom.forEach((c) => {
+    deleted++;
+    var child = document.querySelector(`[data-id='${c.id}']`);
+    parentElement.removeChild(child);
   });
 
   console.log(added);
@@ -55,27 +49,27 @@ function createDomElements(existingDOM, currentDOM) {
   console.log(deleted);
 }
 
-function updateVirtualDom(data) {
-  let existingDOM = [...vDOM]; // Save the existing state of vDOM
-  vDOM = data.map(item => {
+function updateVdom(data) {
+  var existingDom = [...vDom];
+  vDom = data.map((d) => {
     return {
-      id: item.id,
-      title: item.title,
-      description: item.description
+      id: d.id,
+      title: d.title,
+      description: d.description,
     };
   });
-  createDomElements(existingDOM, vDOM); // Pass the old and new vDOM to createDomElements
+  createDomElements(existingDom, vDom);
 }
 
 window.setInterval(() => {
   let todos = [];
-  for (let i = 0; i<Math.floor(Math.random() * 100); i++) {
+  for (let i = 0; i < Math.floor(Math.random() * 100); i++) {
     todos.push({
       title: "Go to gym",
-      description: "Go to gym from 5",
-      id: i+1
-    })
+      description: "Go to gym form 5",
+      id: i + 1,
+    });
   }
 
-  updateVirtualDom(todos);
+  updateVdom(todos);
 }, 5000);
